@@ -1,0 +1,21 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tapes/tape_resource.gd" id="1_tape"]
+
+[resource]
+script = ExtResource("1_tape")
+tape_id = "T-03"
+label = "B-2?"
+time_start = 240.0
+time_end = 330.0
+known_to_player = false
+event_timeline = [{
+"t": 20.0,
+"event": "门缝透光"
+}, {
+"t": 60.0,
+"event": "两个人低声交谈"
+}, {
+"t": 85.0,
+"event": "脚步声远去"
+}]

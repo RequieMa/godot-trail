@@ -1,0 +1,21 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tapes/tape_resource.gd" id="1_tape"]
+
+[resource]
+script = ExtResource("1_tape")
+tape_id = "T-01"
+label = "A-317"
+time_start = 0.0
+time_end = 120.0
+known_to_player = false
+event_timeline = [{
+"t": 30.0,
+"event": "有人进入档案室"
+}, {
+"t": 75.0,
+"event": "画面闪烁"
+}, {
+"t": 110.0,
+"event": "灯灭"
+}]

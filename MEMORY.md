@@ -174,7 +174,45 @@ Godot 4.4+ 会给每个脚本生成同名 `.uid`（`uid://xxxx`）。它是资�
 
 ---
 
-## 4. 历史问题清单（已解决）
+## 4. 配置化与数据驱动
+
+### 4.1 元数据进资源文件，运行时状态留内存
+
+`ClueManager` 最初把 `clue_id` 和取值硬写在业务脚本里（`door_code_A / "A-317"`），改一条线索就要改代码。现在拆成两层：
+
+- **定义表**（`resources/data/clues.json`）：`id` / `value` / `title` / `source` / `description` / `unlocks` / `action`
+- **运行时状态**（`ClueManager` 内存 `Dictionary`）：只有「玩家是否已登记」
+
+`register_clue(id)` 不传值时从定义表取默认值；`build_action_text(id)` 用 JSON 里的 `action` 模板（`{value}` 占位）生成 UI 文案。demo 里改了 JSON 的 `value` 再点「重新加载」按钮，按钮文案立即跟着变——不需要改任何 `.gd`。
+
+**判断标准**：出现「策划要调数值/文案」的需求时，先想数据文件；出现「玩家进度/存档状态」时才放内存。
+
+### 4.2 JSON 读取要留兜底
+
+`FileAccess` 直读在编辑器/开发运行时没问题，导出后裸文件可能不可用。做法：
+
+```gdscript
+func _read_json(path: String) -> Variant:
+	if FileAccess.file_exists(path):
+		var text := FileAccess.get_file_as_string(path)
+		if not text.is_empty():
+			return JSON.parse_string(text)
+	if ResourceLoader.exists(path):
+		var resource = load(path)
+		if resource is JSON:
+			return (resource as JSON).data
+	return null
+```
+
+解析失败不要静默：发 `definition_error` 信号，demo 里直接把错误显示在界面上。
+
+### 4.3 文本文件只能用编辑工具改
+
+用 PowerShell 的 `Get-Content`/`Set-Content` 批量替换 `.gd` 里的中文，会把 UTF-8 内容按 ANSI 读进来再写出去，**整份文件中文变乱码、换行也会丢**。改代码/文档一律用编辑工具或写文件，不要用 shell 做文本替换。
+
+---
+
+## 5. 历史问题清单（已解决）
 
 | 问题 | 根因 | 修复 |
 |---|---|---|
@@ -186,12 +224,19 @@ Godot 4.4+ 会给每个脚本生成同名 `.uid`（`uid://xxxx`）。它是资�
 | 「堵死」标记画了两遍 | 房间侧和连接处各画一次 | 只在连接处画 |
 | gate 的 scope-clean 反复 FAIL | `.dsh/`、`project.godot`、`autoload/` 未纳入 scope | 写任务时纳入 scope |
 | 监控墙 4×2 显得松散 | 格子过小、比例失衡 | 改 9 路 3×3 |
+| HBox 里的 Label 竖着一字一列 | Label 最小宽度被压到 0，autowrap 生效 | `size_flags_horizontal = EXPAND_FILL` |
+| 截图拿到上一帧（数值不更新） | 改完 UI 立刻抓纹理 | `await get_tree().process_frame` ×2 再截图 |
+| `get_demo_state()` 返回 `{}` | `(child as Button)` 对 Label 返回 null，再取 `.text` 报错 | 先 `if child is Button` 判断 |
+| `:=` 无法推断类型 | 变量来自无类型 Variant（字典/autoload 动态调用） | 显式标注类型 |
+| 改完脚本没生效 | 复用了旧实例（旧代码仍在跑） | 改完必须重启；9090 被占时用 `port=9091` 起新实例，不要杀外部实例 |
 
 ---
 
-## 5. 待办 / 已知限制
+## 6. 待办 / 已知限制
 
 - 地图与监控墙还没有真正的「画面串流」，目前是复制机位变换
 - 监控 UI 没有编号角标、时间戳、录像状态等监控质感元素
 - 占位美术无贴图；房间内容仅方盒
+- 磁带 `stream` 字段还没接真实视频，仅用事件时间轴驱动
+- `TimeManager` 的默认救援时间轴仍写死在脚本常量里，可考虑同样挪到 JSON
 - `autoload/mcp_interaction_server.gd` 属于调试设施，发行前需移除

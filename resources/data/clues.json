@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "clues": [
+    {
+      "id": "door_code_A",
+      "title": "门禁便签",
+      "value": "A-317",
+      "source": "档案室货架上的便签",
+      "description": "一张被压皱的便签，写着门禁密码。",
+      "unlocks": "door_archive",
+      "action": "输入密码 {value} 开门"
+    },
+    {
+      "id": "witness_note",
+      "title": "值夜人备忘",
+      "value": "22:40 有人在侧门",
+      "source": "监视器下方的记事本",
+      "description": "值夜人的字迹，只有时间和一句话。",
+      "unlocks": "none",
+      "action": ""
+    }
+  ]
+}

@@ -27,6 +27,11 @@ godot --path . scenes/theater_map.tscn
 # 运行 4 路网格演示
 godot --path . scenes/monitor_grid_demo.tscn
 
+# 三个系统 demo
+godot --path . scenes/demo_tapes.tscn           # 录像带数据模型 + 归档/播放
+godot --path . scenes/demo_time_manager.tscn    # 双时钟 + 救援事件时间轴
+godot --path . scenes/demo_clues.tscn           # 全局线索 + 初始化时决定选项
+
 # 冒烟测试（无窗口）
 godot --headless --path . --script tests/smoke_test.gd
 
@@ -44,13 +49,16 @@ godot --headless --path . --quit-after 40 scenes/theater_monitor.tscn
 | `scenes/monitor_grid_demo.tscn` | 4 个 SubViewport 立方体网格 + 全屏锁定过渡 | 点击格子进入；`ESC` / 右键返回 |
 | `scenes/theater_map.tscn` | 剧院俯视平面占位图：9 房间、通道/堵死、C1–C9 机位 | 无（用于检查布局与机位） |
 | `scenes/theater_monitor.tscn` | 9 路 3×3 监控墙（数据来自剧院地图） | 点击某一路全屏；`ESC` / 右键返回 |
+| `scenes/demo_tapes.tscn` | 录像带数据模型：物证架发现 → 档案库筛选 → 播放定位 | 点击「发现并收录」「进入档案播放」「停止」 |
+| `scenes/demo_time_manager.tscn` | 双时钟 + 救援事件时间轴 + 档案期间静默记录 | 「进入档案室 / 回到实时」、时间流速 x1/x5/x20 |
+| `scenes/demo_clues.tscn` | 全局线索：登记后交互节点重新初始化才显示新选项 | 「查看便签」「重新初始化门」「清空线索」 |
 
 ### 剧院平面（theater_map）
 
 ```
 楼梯 ── 大厅 ── 观众席 ── 舞台 ── 后台
-          │        │                   │
-        正门(堵死) 走廊 ── 道具仓      侧门(出口)
+		  │        │                   │
+		正门(堵死) 走廊 ── 道具仓      侧门(出口)
 ```
 
 - 单位：米（`1 unit = 1 m`），x 向东、z 向南、y 向上
@@ -74,6 +82,73 @@ GRID ──点击──▶ TRANSITION_IN ──完成──▶ FOCUSED
  └────────── GRID ◀──完成── TRANSITION_OUT ◀──ESC/右键
 ```
 
+## 系统演示（三个 demo）
+
+三套系统都是「autoload 脚本 + demo 场景」，autoload 在 `project.godot` 里注册，demo UI 均在运行时构建。
+
+### 1. 录像带数据模型（`scenes/demo_tapes.tscn`）
+
+- `scripts/tapes/tape_resource.gd` —— `class_name TapeResource extends Resource`
+  - 字段：`tape_id`、`label`（玩家可见，可能模糊/错误）、`time_start`、`time_end`、`stream: VideoStream`、`event_timeline: Array[Dictionary]`、`known_to_player`
+  - `duration()` / `contains_time()` / `events_between(from, to)`（带内相对秒）
+- `scripts/tape_archive.gd` —— autoload `TapeArchive`：`load_default_library()`、`get_known_tapes()`、`discover(tape_id)`、`reset_discovery()`
+- 数据文件：`resources/tapes/*.tres`（T-01 标签清晰、T-02/T-03 标签模糊）
+- 档案库只显示 `known_to_player == true` 的带子；在「物证架」点「发现并收录」才进列表
+
+### 2. 时间管理器（`scenes/demo_time_manager.tscn`）
+
+- `scripts/time_manager.gd` —— autoload `TimeManager`
+  - `present_time` 实时推进；`archive_time` 只读（只有 `enter_archive` / `seek_archive` 能改）
+  - `rescue_events` 时间轴数组，越过阈值统一分发，不在 `_process` 里散落条件
+  - 档案模式下事件静默记入 `deferred_events`，`exit_archive()` 时以 `deferred = true` 补播并发出 `deferred_events_flushed`
+- 默认时间轴：`door_locked @30s`、`guard_checks_room @90s`、`critical_window @150s`
+- demo 提供时间流速 x1 / x5 / x20 便于观察
+
+### 3. 线索管理器（`scenes/demo_clues.tscn`）
+
+线索**不再是代码里的常量**，而是由 JSON 定义表驱动：
+
+```json
+// resources/data/clues.json
+{
+  "version": 1,
+  "clues": [
+    {
+      "id": "door_code_A",
+      "title": "门禁便签",
+      "value": "A-317",
+      "source": "档案室货架上的便签",
+      "description": "一张被压皱的便签，写着门禁密码。",
+      "unlocks": "door_archive",
+      "action": "输入密码 {value} 开门"
+    }
+  ]
+}
+```
+
+| 字段 | 用途 |
+|---|---|
+| `id` | 线索唯一标识，运行时 `has_clue(id)` 用 |
+| `value` | 登记时的默认取值 |
+| `source` / `description` | demo 里「线索来源」按钮与线索面板展示 |
+| `unlocks` | 该线索解锁哪个交互（demo 的门 id 为 `door_archive`） |
+| `action` | 交互按钮文案模板，`{value}` 会被替换 |
+
+`scripts/clue_manager.gd`（autoload `ClueManager`）：
+
+| 方法 | 说明 |
+|---|---|
+| `load_definitions(path = DEFAULT_DEFINITIONS_PATH)` | 载入/重载 JSON 定义表，失败发 `definition_error` |
+| `get_definitions()` / `get_definition(id)` | 定义查询 |
+| `get_definitions_for_unlock(unlock_id)` | 某交互可用的线索定义 |
+| `register_clue(id, value = null)` | 登记线索；`value` 省略时取 JSON 里的 `value` |
+| `has_clue(id)` / `get_clue(id)` / `get_all()` / `clear()` | 运行时状态 |
+| `build_action_text(id)` | 用 `action` 模板生成按钮文案 |
+
+交互节点在**初始化时**读一次 `has_clue()` 决定显示哪些选项；登记新线索后需重新初始化（demo 里是「重新初始化门」）。
+
+**改数据不用改代码**：把 `clues.json` 的 `value` 改成别的值，点「重新加载 clues.json」→ 线索取值与按钮文案立刻跟着变。
+
 ## 目录结构
 
 ```
@@ -83,11 +158,25 @@ scenes/
   monitor_grid_demo.tscn     # 4 路网格演示
   theater_map.tscn           # 剧院平面图
   theater_monitor.tscn       # 9 路监控墙
+  demo_tapes.tscn            # 录像带数据模型 demo
+  demo_time_manager.tscn     # 双时钟 demo
+  demo_clues.tscn            # 线索 demo
 scripts/
   main.gd
   monitor_grid_demo.gd       # 4 路网格控制器
   theater_map.gd             # 地图构建器（房间/通道/机位/道具）
   theater_monitor.gd         # 9 路监控墙控制器
+  time_manager.gd            # autoload：双时钟 + 救援事件时间轴
+  clue_manager.gd            # autoload：JSON 驱动的线索
+  tape_archive.gd            # autoload：磁带库
+  tapes/tape_resource.gd     # TapeResource 数据模型
+  demos/demo_tapes.gd
+  demos/demo_time_manager.gd
+  demos/demo_clues.gd
+  demo_ui.gd                 # demo 用 UI 小工具
+resources/
+  tapes/*.tres               # 磁带资源
+  data/clues.json            # 线索定义表
 shaders/
   grid_ground.gdshader       # 地面网格
   scanline_vignette.gdshader # 扫描线 + 暗角
@@ -119,6 +208,8 @@ docs/screenshots/            # README 用截图
 | `get_focus_snapshot()` | 当前状态、激活机位、图层可见性/alpha、相机位置与 fov 等 |
 
 信号：`focus_changed(new_state: int)`。
+
+三套系统（录像带 / 时间 / 线索）的 API 见上文「系统演示」一节。
 
 ## 可调参数
 
@@ -154,11 +245,20 @@ godot --headless --path . --script tests/smoke_test.gd   # 期望输出 SMOKE_TE
 
 ![剧院平面与 C1–C9 机位](docs/screenshots/theater_map.png)
 
+![录像带归档：物证架发现 + 档案库播放](docs/screenshots/demo_tapes.png)
+
+![双时钟与救援事件：档案期间静默记录，回实时补播](docs/screenshots/demo_time_manager.png)
+
+![JSON 驱动的线索与门选项](docs/screenshots/demo_clues.png)
+
 ## 已知限制
 
 - 美术全部为占位方盒，无贴图/材质细节
 - `theater_map` / `theater_monitor` 的节点由脚本在运行时生成，编辑器里需运行后才能看到完整结构
 - 地图与监控墙之间目前是「复制机位变换」，尚未做真正的画面串流/录制
+- 三个系统 demo 的 UI 也是运行时构建的，场景文件里只有根节点
+- 磁带 `stream` 字段暂未接真实视频，只用 `event_timeline` 驱动播放定位
+- `clues.json` 用 `FileAccess` 直读；若要导出发行版，需确认 JSON 被打包（或改用 JSON 资源加载）
 - 调试用的 `autoload/mcp_interaction_server.gd` 不入库（带本地 eval，公开仓库不应携带）；用 godot-bridge 跑一次项目会临时注入
 
 更多踩坑记录与约定见 [MEMORY.md](MEMORY.md)。
