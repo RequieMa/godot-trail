@@ -11,5 +11,8 @@ Thumbs.db
 external-assets/*
 !external-assets/.gdignore
 
-# Game Studio 运行日志（状态与决策入库，日志不入库）
-.dsh/game-studio/logs/
+# Game Studio 本机工具状态（含绝对路径/日志/截图，不入库）
+.dsh/
+
+# godot-bridge 运行时自动注入的调试交互服务器（含 eval 能力，不入库）
+autoload/

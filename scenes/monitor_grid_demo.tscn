@@ -1,0 +1,233 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/monitor_grid_demo.gd" id="1_main"]
+[ext_resource type="Shader" path="res://shaders/scanline_vignette.gdshader" id="2_scan"]
+[ext_resource type="Shader" path="res://shaders/grid_ground.gdshader" id="3_ground"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.04, 0.05, 0.07, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.42, 0.48, 0.6, 1)
+ambient_light_energy = 0.75
+
+[sub_resource type="StandardMaterial3D" id="Mat_01"]
+albedo_color = Color(0.92, 0.24, 0.28, 1)
+metallic = 0.1
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Mat_02"]
+albedo_color = Color(0.28, 0.85, 0.38, 1)
+metallic = 0.1
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Mat_03"]
+albedo_color = Color(0.26, 0.48, 0.95, 1)
+metallic = 0.1
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Mat_04"]
+albedo_color = Color(0.95, 0.78, 0.24, 1)
+metallic = 0.1
+roughness = 0.42
+
+[sub_resource type="BoxMesh" id="Mesh_01"]
+material = SubResource("Mat_01")
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="Mesh_02"]
+material = SubResource("Mat_02")
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="Mesh_03"]
+material = SubResource("Mat_03")
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="Mesh_04"]
+material = SubResource("Mat_04")
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="ShaderMaterial" id="GroundMat"]
+shader = ExtResource("3_ground")
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+material = SubResource("GroundMat")
+size = Vector2(24, 24)
+
+[sub_resource type="ShaderMaterial" id="ScanMat"]
+shader = ExtResource("2_scan")
+
+[node name="MonitorGridDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="Environment" type="WorldEnvironment" parent="World"]
+environment = SubResource("Env")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="World"]
+rotation_degrees = Vector3(-52, -38, 0)
+light_energy = 1.1
+
+[node name="FillLight" type="DirectionalLight3D" parent="World"]
+rotation_degrees = Vector3(-18, 140, 0)
+light_energy = 0.55
+light_color = Color(0.62, 0.72, 1, 1)
+
+[node name="Ground" type="MeshInstance3D" parent="World"]
+mesh = SubResource("GroundMesh")
+
+[node name="Box_01" type="MeshInstance3D" parent="World"]
+position = Vector3(-5, 0.6, 0)
+mesh = SubResource("Mesh_01")
+
+[node name="Box_02" type="MeshInstance3D" parent="World"]
+position = Vector3(5, 0.6, 0)
+mesh = SubResource("Mesh_02")
+
+[node name="Box_03" type="MeshInstance3D" parent="World"]
+position = Vector3(0, 0.6, -5)
+mesh = SubResource("Mesh_03")
+
+[node name="Box_04" type="MeshInstance3D" parent="World"]
+position = Vector3(0, 0.6, 5)
+mesh = SubResource("Mesh_04")
+
+[node name="MonitorGrid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="Cell_01" type="SubViewportContainer" parent="MonitorGrid"]
+custom_minimum_size = Vector2(280, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MonitorGrid/Cell_01"]
+size = Vector2i(640, 360)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MonitorGrid/Cell_01/SubViewport"]
+current = true
+fov = 50.0
+
+[node name="Cell_02" type="SubViewportContainer" parent="MonitorGrid"]
+custom_minimum_size = Vector2(280, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MonitorGrid/Cell_02"]
+size = Vector2i(640, 360)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MonitorGrid/Cell_02/SubViewport"]
+current = true
+fov = 50.0
+
+[node name="Cell_03" type="SubViewportContainer" parent="MonitorGrid"]
+custom_minimum_size = Vector2(280, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MonitorGrid/Cell_03"]
+size = Vector2i(640, 360)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MonitorGrid/Cell_03/SubViewport"]
+current = true
+fov = 50.0
+
+[node name="Cell_04" type="SubViewportContainer" parent="MonitorGrid"]
+custom_minimum_size = Vector2(280, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MonitorGrid/Cell_04"]
+size = Vector2i(640, 360)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MonitorGrid/Cell_04/SubViewport"]
+current = true
+fov = 50.0
+
+[node name="TransitionLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ZoomView" type="TextureRect" parent="TransitionLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 0
+
+[node name="ScanlineOverlay" type="ColorRect" parent="TransitionLayer"]
+visible = false
+material = SubResource("ScanMat")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="ZoomViewport" type="SubViewport" parent="TransitionLayer"]
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="ZoomCamera" type="Camera3D" parent="TransitionLayer/ZoomViewport"]
+current = true
+fov = 50.0
+
+[node name="BackHint" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -64.0
+offset_right = 392.0
+offset_bottom = -24.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "ESC 返回网格"

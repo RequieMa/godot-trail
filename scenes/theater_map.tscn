@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/theater_map.gd" id="1_map"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.03, 0.04, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.42, 0.48, 0.6, 1)
+ambient_light_energy = 1.05
+
+[node name="TheaterMap" type="Node3D"]
+script = ExtResource("1_map")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-58, -34, 0)
+light_energy = 1.35
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-20, 145, 0)
+light_color = Color(0.6, 0.7, 1, 1)
+light_energy = 0.5
