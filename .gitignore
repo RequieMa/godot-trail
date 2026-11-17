@@ -1,0 +1,15 @@
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+.mono/
+.DS_Store
+Thumbs.db
+
+# 外部资产：忽略内容，只保留 .gdignore
+external-assets/*
+!external-assets/.gdignore
+
+# Game Studio 运行日志（状态与决策入库，日志不入库）
+.dsh/game-studio/logs/

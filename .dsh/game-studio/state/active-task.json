@@ -1,0 +1,29 @@
+{
+  "goal": "初始化 DSH Game Studio：建立可构建/可运行/可测试的最小基线并打通门禁",
+  "category": "other",
+  "workflow": "build",
+  "engine": "godot",
+  "version": "4.7",
+  "phase": "COMMIT",
+  "status": "completed",
+  "scope": [
+    "project.godot",
+    "scenes/main.tscn",
+    "scripts/main.gd",
+    "tests/smoke_test.gd",
+    ".gitignore"
+  ],
+  "commit": "3708112",
+  "verification": {
+    "build": "exit 0 / GODOT_TRAIL_READY",
+    "test": "exit 0 / SMOKE_TEST_PASS",
+    "script_validate": "scripts/main.gd valid"
+  },
+  "open_issues": [
+    "game_studio_gate.evaluate 内部报错 (path undefined)",
+    "game_studio_dispatch 需要未注入的 subagents 服务",
+    "game_studio_engine 需要 GODOT_BIN/PATH（godot-bridge 已配置路径）"
+  ],
+  "notes": "godot bridge path = E:/dev/tool/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe",
+  "updatedAt": "2026-11-17T12:37:09.171Z"
+}
