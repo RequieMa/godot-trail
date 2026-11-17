@@ -1,0 +1,42 @@
+{
+  "gates": [
+    "build-pass",
+    "tests-pass",
+    "scope-clean",
+    "no-debug-junk"
+  ],
+  "allPass": true,
+  "results": [
+    {
+      "id": "build-pass",
+      "verdict": "PASS",
+      "reasons": [
+        "build ok (0ms)"
+      ]
+    },
+    {
+      "id": "tests-pass",
+      "verdict": "PASS",
+      "reasons": [
+        "build: exit 0 / GODOT_TRAIL_READY; test: exit 0 / SMOKE_TEST_PASS"
+      ]
+    },
+    {
+      "id": "scope-clean",
+      "verdict": "PASS",
+      "reasons": [
+        "0 个文件均在 scope 内"
+      ]
+    },
+    {
+      "id": "no-debug-junk",
+      "verdict": "PASS",
+      "reasons": [
+        "无调试残留"
+      ]
+    }
+  ],
+  "evidence": {
+    "changedFiles": []
+  }
+}
